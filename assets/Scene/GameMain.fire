@@ -17,7 +17,7 @@
         "__id__": 2
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [],
     "_prefab": null,
     "_opacity": 255,
@@ -183,7 +183,7 @@
       "array": [
         0,
         0,
-        416.1116748714887,
+        416.55821922031504,
         0,
         0,
         0,
@@ -6299,9 +6299,15 @@
       "__id__": 2
     },
     "_enabled": true,
-    "pbMarketItem": null,
-    "cttMarket": null,
-    "cttWareHouse": null,
+    "pbMarketItem": {
+      "__uuid__": "1f3f3768-e886-438d-9ed2-7dd4c2779451"
+    },
+    "cttMarket": {
+      "__id__": 31
+    },
+    "cttWareHouse": {
+      "__id__": 54
+    },
     "lblTime": {
       "__id__": 11
     },

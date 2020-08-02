@@ -40,7 +40,7 @@ export default class NewClass extends cc.Component {
     money = 0;   //钱
     mood = 50; //心情
     reputation = 0;  //名声
-    showGoodsTotal = 4; //显示的商品总量
+    showGoodsTotalCount = 4; //显示的商品总量
 
     // LIFE-CYCLE CALLBACKS:
 
@@ -123,7 +123,7 @@ export default class NewClass extends cc.Component {
     updateGoods(){
         let array = GameData.GOODS;
         let getedIdArr = [];
-        for(let i = 0; i<this.showGoodsTotal; i++){
+        for(let i = 0; i<this.showGoodsTotalCount; i++){
             let randNum = 0
             let bGeted = false;
             do{
