@@ -1,16 +1,19 @@
+import ViewBase from "./common/ViewBase";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class marketItem extends ViewBase {
 
     @property(cc.Label)
-    label: cc.Label = null;
+    lblName: cc.Label = null;
 
-    @property
-    text: string = 'hello';
+    @property(cc.Label)
+    lblPrice: cc.Label = null;
 
     // LIFE-CYCLE CALLBACKS:
+    price = 0;  //价格
+    gid: 0; //货物id
 
     // onLoad () {}
 
@@ -18,7 +21,17 @@ export default class NewClass extends cc.Component {
 
     }
 
-    updateData(){
+    updateData(info){
+        this.gid = info.id;
+        this.lblName.string = info.name;
+        this.price = info.price;
+        this.lblPrice.string = this.price+'';
+    }
 
+    onClickItem(){
+        cc.log('点击'+this.gid)
+        if(this.callback){
+            this.callback;
+        }        
     }
 }

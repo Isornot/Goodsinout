@@ -1,9 +1,10 @@
 import { GameData } from "./GameData";
+import ViewBase from "./common/ViewBase";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class NewClass extends cc.Component {
+export default class NewClass extends ViewBase {
 
     @property(cc.Prefab)
     pbMarketItem: cc.Prefab = null;   //市场预制
@@ -32,6 +33,9 @@ export default class NewClass extends cc.Component {
     @property(cc.Label)
     lblMarketInfo: cc.Label = null;   //市场信息
 
+    @property(cc.Prefab)      //购买货物弹窗
+    goodsBuyPrefab: cc.Prefab = null;
+
     @property(cc.Node)      //遮罩
     mask: cc.Node = null;
 
@@ -41,14 +45,15 @@ export default class NewClass extends cc.Component {
     mood = 50; //心情
     reputation = 0;  //名声
     showGoodsTotalCount = 4; //显示的商品总量
+    dialogGoodsBuy: cc.Node;    //弹窗-购买货物
+    
 
     // LIFE-CYCLE CALLBACKS:
 
     // onLoad () {}
 
     start () {
-        this.initData();
-        this.initView();
+        super.start();
     }
 
     initData(){
@@ -122,38 +127,61 @@ export default class NewClass extends cc.Component {
 
     updateGoods(){
         let array = GameData.GOODS;
+        cc.log('array..'+JSON.stringify(array))
         let getedIdArr = [];
         for(let i = 0; i<this.showGoodsTotalCount; i++){
             let randNum = 0
-            let bGeted = false;
-            do{
+            let bNew = false;
+            let count = 0;  //测试数据
+            while(!bNew){
+                count++;
+                bNew = true;
+                cc.log('凑童年：'+count);
                 randNum = parseInt(Math.random()*array.length+'');
-                for(let j = 0; j<getedIdArr.length; j++){
-                    if(randNum == getedIdArr[j]){
-                        bGeted = true;
+                cc.log('randNum:'+randNum)
+                if(array[randNum]){
+                    for(let j = 0; j<getedIdArr.length; j++){
+                        if(randNum == getedIdArr[j]){
+                            bNew = false;
+                        }
                     }
-                }
-                
-            }while(bGeted == false)
-            if(array[randNum]){
-                getedIdArr.push(randNum);
+                    if(bNew){
+                        getedIdArr.push(randNum);
+                        bNew = true;
+                    }
+                }                    
             }
         }
-    
 
+        cc.log('geditedarrl:'+JSON.stringify(getedIdArr))
         for (let i = 0; i < getedIdArr.length; i++) {
             const element = array[getedIdArr[i]];
             let item = cc.instantiate(this.pbMarketItem);
             let info = {
+                id: element.id,
                 name: element.name,
                 price: element.price    //TODO 根据涨幅判定价格
             }
-            item.getComponent(item.name).updateData();
+            item.getComponent(item.name).updateData(info);
+            item.getComponent(item.name).setCallBack(()=>{
+                cc.log('点击购买货物')
+                this.showGoodsBuyDialog(info);
+            });
             this.cttMarket.addChild(item);
             // 准备加载item
         }
     }
     
+    showGoodsBuyDialog(info){
+        cc.log('显示购买窗口')
+        if(this.dialogGoodsBuy){
+            this.dialogGoodsBuy.active = true;
+            this.mask.active = true;
+            this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).updateData(info);
+        }else{
+            this.node.addChild(cc.instantiate(this.goodsBuyPrefab));
+        }
+    }
 
     showMask(bflag){
         this.mask.active = bflag;
