@@ -39,6 +39,9 @@ export default class NewClass extends ViewBase {
     @property(cc.Node)      //遮罩
     mask: cc.Node = null;
 
+    @property(cc.Node)      //弹窗父节点
+    dialogRoot: cc.Node = null;
+
     currentTime = 1;     //当前时间
     totalTime = 60;  //总时间
     money = 0;   //钱
@@ -46,6 +49,8 @@ export default class NewClass extends ViewBase {
     reputation = 0;  //名声
     showGoodsTotalCount = 4; //显示的商品总量
     dialogGoodsBuy: cc.Node;    //弹窗-购买货物
+
+    Warehouse_info = [];    //仓库货物信息
     
 
     // LIFE-CYCLE CALLBACKS:
@@ -89,6 +94,10 @@ export default class NewClass extends ViewBase {
      * @param value 当前现银
      */
     updateMoney(value?){
+        cc.log('value:'+value);
+        if(value && value == this.money){
+            return;
+        }
         if(value){
             this.money = value;
         }
@@ -171,16 +180,69 @@ export default class NewClass extends ViewBase {
             // 准备加载item
         }
     }
+
+    /**
+     * 
+     * @param addInfo 添加的货物信息{name:'名称', price:买入单价, count:购买数量}
+     */
+    updateWareHouse(addInfo){
+        // cc.log('更新仓库信息'+JSON.stringify(info));
+        let added = false;
+        this.Warehouse_info.forEach(element => {
+            // TODO 待测试
+            if(element.name == addInfo.name){
+                element.price = (element.price+addInfo.price)/(element.count+addInfo.count);
+                element.count += addInfo.count;
+                added = true;
+            }
+        });
+        if(!added){
+            this.Warehouse_info.push(addInfo);
+        }
+        this.udpateUIWareHouse();
+    }
+
+    udpateUIWareHouse(){
+        this.cttWareHouse.removeAllChildren();
+        let array = this.Warehouse_info;
+        array.forEach(element => {
+            let item = cc.instantiate(this.pbWarehouseItem);
+            item.getComponent(item.name).updateData(element);
+            this.cttWareHouse.addChild(item);
+        });
+    }
+
     
     showGoodsBuyDialog(info){
         cc.log('显示购买窗口')
+        info = {
+            name:info.name,
+            mostCount: Math.floor(this.money/info.price),
+            price:info.price
+        }
         if(this.dialogGoodsBuy){
             this.dialogGoodsBuy.active = true;
-            this.mask.active = true;
             this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).updateData(info);
         }else{
-            this.node.addChild(cc.instantiate(this.goodsBuyPrefab));
+            this.dialogGoodsBuy = cc.instantiate(this.goodsBuyPrefab);
+            this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).updateData(info);
+            this.dialogRoot.addChild(this.dialogGoodsBuy);
+            this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).setCallBack((costPrice)=>{
+                cc.log('buyCount：：：'+costPrice)
+                this.updateMoney(this.money-costPrice); 
+                this.mask.active = false;
+                this.dialogRoot.active = false;
+                this.dialogGoodsBuy.active = false;
+                let buyInfo = {
+                    name: info.name,
+                    price: info.price,
+                    count: costPrice/info.price
+                }
+                this.updateWareHouse(buyInfo);
+            });
         }
+        this.dialogRoot.active = true;
+        this.mask.active = true;
     }
 
     showMask(bflag){

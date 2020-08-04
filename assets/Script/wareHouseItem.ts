@@ -11,9 +11,9 @@ export default class marketItem extends ViewBase {
     @property(cc.Label)
     lblPrice: cc.Label = null;
 
-    // LIFE-CYCLE CALLBACKS:
-    price = 0;  //价格
-    gid: 0; //货物id
+    @property(cc.Label)
+    lblCount: cc.Label = null;
+
 
     // onLoad () {}
 
@@ -22,10 +22,9 @@ export default class marketItem extends ViewBase {
     }
 
     updateData(info){
-        this.gid = info.id;
         this.lblName.string = info.name;
-        this.price = info.price;
-        this.lblPrice.string = this.price+'';
+        this.lblPrice.string = info.price+'';
+        this.lblCount.string = info.count+'';
     }
 
     onClickItem(){
