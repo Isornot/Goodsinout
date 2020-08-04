@@ -28,10 +28,13 @@ export default class marketItem extends ViewBase {
     }
 
     onClickItem(){
-        cc.log('点击'+this.gid)
+        // cc.log('点击')
         if(this.callback){
-            cc.log('sds')
-            this.callback();
+            this.callback({
+                name:this.lblName.string,
+                price: parseInt(this.lblPrice.string),
+                count: parseInt(this.lblCount.string)
+            });
         }        
     }
 }

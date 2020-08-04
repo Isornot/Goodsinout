@@ -9,6 +9,9 @@ export default class NewClass extends ViewBase {
     @property(cc.Prefab)
     pbMarketItem: cc.Prefab = null;   //市场预制
 
+    @property(cc.Prefab)
+    pbWarehouseItem: cc.Prefab = null;   //仓库预制
+
     @property(cc.Node)
     cttMarket: cc.Node = null;   //市场ctt
 
@@ -51,6 +54,8 @@ export default class NewClass extends ViewBase {
     dialogGoodsBuy: cc.Node;    //弹窗-购买货物
 
     Warehouse_info = [];    //仓库货物信息
+
+    isGoodsBuyIn = false;    //判断货物是买进还是卖出
     
 
     // LIFE-CYCLE CALLBACKS:
@@ -135,6 +140,7 @@ export default class NewClass extends ViewBase {
     }
 
     updateGoods(){
+        this.cttMarket.removeAllChildren();
         let array = GameData.GOODS;
         cc.log('array..'+JSON.stringify(array))
         let getedIdArr = [];
@@ -174,15 +180,14 @@ export default class NewClass extends ViewBase {
             item.getComponent(item.name).updateData(info);
             item.getComponent(item.name).setCallBack(()=>{
                 cc.log('点击购买货物')
-                this.showGoodsBuyDialog(info);
+                this.showGoodsOptionDialog(info, true);
             });
             this.cttMarket.addChild(item);
-            // 准备加载item
         }
     }
 
     /**
-     * 
+     * 刷新货仓数据
      * @param addInfo 添加的货物信息{name:'名称', price:买入单价, count:购买数量}
      */
     updateWareHouse(addInfo){
@@ -191,7 +196,8 @@ export default class NewClass extends ViewBase {
         this.Warehouse_info.forEach(element => {
             // TODO 待测试
             if(element.name == addInfo.name){
-                element.price = (element.price+addInfo.price)/(element.count+addInfo.count);
+                cc.log('price:'+element.price+'.'+addInfo.price+';  coutn:'+element.count+'; '+addInfo.count);
+                element.price = Math.floor(element.price*element.count+addInfo.price*addInfo.count)/(element.count+addInfo.count);
                 element.count += addInfo.count;
                 added = true;
             }
@@ -202,23 +208,33 @@ export default class NewClass extends ViewBase {
         this.udpateUIWareHouse();
     }
 
+    // 刷新货仓UI
     udpateUIWareHouse(){
         this.cttWareHouse.removeAllChildren();
         let array = this.Warehouse_info;
         array.forEach(element => {
             let item = cc.instantiate(this.pbWarehouseItem);
             item.getComponent(item.name).updateData(element);
+            item.getComponent(item.name).setCallBack((info)=>{
+                cc.log('iii:'+JSON.stringify(info))
+                this.showGoodsOptionDialog(info, false);
+            });
             this.cttWareHouse.addChild(item);
         });
     }
-
     
-    showGoodsBuyDialog(info){
-        cc.log('显示购买窗口')
+    /**
+     * 
+     * @param info 显示数据{name:'名称', count:'数量' , tip:'显示的提示', count?(买入无，卖出有)}
+     * @param isBuyIn 是否买入：true（买入)
+     */
+    showGoodsOptionDialog(info, isBuyIn){
+        cc.log('显示获取操作窗口:'+isBuyIn+';'+JSON.stringify(info))
         info = {
-            name:info.name,
-            mostCount: Math.floor(this.money/info.price),
-            price:info.price
+            name: info.name,
+            count: info.count? info.count: Math.floor(this.money/info.price),
+            price: info.price,
+            isBuyIn: isBuyIn
         }
         if(this.dialogGoodsBuy){
             this.dialogGoodsBuy.active = true;
@@ -227,20 +243,48 @@ export default class NewClass extends ViewBase {
             this.dialogGoodsBuy = cc.instantiate(this.goodsBuyPrefab);
             this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).updateData(info);
             this.dialogRoot.addChild(this.dialogGoodsBuy);
-            this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).setCallBack((costPrice)=>{
-                cc.log('buyCount：：：'+costPrice)
-                this.updateMoney(this.money-costPrice); 
-                this.mask.active = false;
-                this.dialogRoot.active = false;
-                this.dialogGoodsBuy.active = false;
+        }
+        this.dialogGoodsBuy.getComponent(this.dialogGoodsBuy.name).setCallBack((rtInfo)=>{
+            this.mask.active = false;
+            this.dialogRoot.active = false;
+            this.dialogGoodsBuy.active = false;
+            cc.log('codufsdkf:'+rtInfo)
+            if(rtInfo == 'close'){
+                return;
+            }
+            if(isBuyIn){
+                this.updateMoney(this.money-rtInfo); 
                 let buyInfo = {
                     name: info.name,
                     price: info.price,
-                    count: costPrice/info.price
+                    count: rtInfo/info.price
                 }
                 this.updateWareHouse(buyInfo);
-            });
-        }
+            }else{
+                cc.log('卖出的货物信息:'+JSON.stringify(rtInfo));   //{name:'', price:}
+                cc.log('卖出前的仓库数据：'+JSON.stringify(this.Warehouse_info));
+                let removeIndex = -1;
+                let array = this.Warehouse_info;
+                for(let i = 0; i<array.length; i++){
+                    if(array[i].name == rtInfo.name){
+                        let soldCount = rtInfo.price/array[i].price
+                        if(array[i].count == soldCount){
+                            removeIndex = i;
+                        }else{
+                            array[i].count -= soldCount;
+                        }
+                        break;  //TODO 待测试
+                    }
+                }
+                cc.log('removeIndex:'+removeIndex)
+                if(removeIndex!=-1){
+                    this.Warehouse_info.splice(removeIndex, 1);
+                }
+                cc.log('卖出后的仓库数据：'+JSON.stringify(this.Warehouse_info));
+                this.udpateUIWareHouse();
+                this.updateMoney(this.money+rtInfo.price); 
+            }            
+        });
         this.dialogRoot.active = true;
         this.mask.active = true;
     }
@@ -258,7 +302,13 @@ export default class NewClass extends ViewBase {
     onClickNext(){
         // cc.log('点击下一年');
         this.currentTime += 1;
+        if(this.currentTime == this.totalTime){
+            cc.log('GameOVER');
+            // 增加其他操作
+            return;
+        }
         this.lblTime.string = '时间：'+this.currentTime+'/'+this.totalTime;
+        this.updateGoods();
     }
 
     // update (dt) {}

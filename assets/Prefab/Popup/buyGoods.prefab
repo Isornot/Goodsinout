@@ -1382,7 +1382,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "mostCount",
+    "_name": "tip",
     "_objFlags": 0,
     "_parent": {
       "__id__": 1
@@ -2145,8 +2145,14 @@
     "lblName": {
       "__id__": 3
     },
-    "lblMostCount": {
+    "lblTip": {
       "__id__": 39
+    },
+    "lblBtn": {
+      "__id__": 43
+    },
+    "slider": {
+      "__id__": 34
     },
     "_id": ""
   },

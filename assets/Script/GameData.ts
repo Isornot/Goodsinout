@@ -1,5 +1,6 @@
 export class GameData{
     static BUSINESS_VALUE = 0    //产业价值
+    static MONEYNAME = '银两'   //钱币名称
 
     /**
      * 货物信息
