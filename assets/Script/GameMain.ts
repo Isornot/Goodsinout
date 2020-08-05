@@ -172,11 +172,7 @@ export default class NewClass extends ViewBase {
         for (let i = 0; i < getedIdArr.length; i++) {
             const element = array[getedIdArr[i]];
             let item = cc.instantiate(this.pbMarketItem);
-            let info = {
-                id: element.id,
-                name: element.name,
-                price: element.price    //TODO 根据涨幅判定价格
-            }
+            let info = this.getTempGoodsInfo(element);
             item.getComponent(item.name).updateData(info);
             item.getComponent(item.name).setCallBack(()=>{
                 cc.log('点击购买货物')
@@ -221,6 +217,11 @@ export default class NewClass extends ViewBase {
             });
             this.cttWareHouse.addChild(item);
         });
+    }
+
+    getTempGoodsInfo(info){
+        let rtInfo = {};
+        
     }
     
     /**
