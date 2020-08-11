@@ -152,7 +152,7 @@ export default class NewClass extends ViewBase {
                 count++;
                 bNew = true;
                 cc.log('凑童年：'+count);
-                randNum = parseInt(Math.random()*array.length+'');
+                randNum = Math.floor(Math.random()*array.length);
                 cc.log('randNum:'+randNum)
                 if(array[randNum]){
                     for(let j = 0; j<getedIdArr.length; j++){
@@ -211,7 +211,13 @@ export default class NewClass extends ViewBase {
         array.forEach(element => {
             let item = cc.instantiate(this.pbWarehouseItem);
             item.getComponent(item.name).updateData(element);
-            item.getComponent(item.name).setCallBack((info)=>{
+            item.getComponent(item.name).setCallBack((gid)=>{
+                let info = null;
+                GameData.GOODS.forEach(element => {
+                    if(element.id == gid){
+                        info = element;
+                    }
+                });
                 cc.log('iii:'+JSON.stringify(info))
                 this.showGoodsOptionDialog(info, false);
             });
@@ -219,9 +225,36 @@ export default class NewClass extends ViewBase {
         });
     }
 
+    /**
+     * 获取当前商品信息
+     * @param info 商品信息 对应GameData.GOODS
+     */
     getTempGoodsInfo(info){
-        let rtInfo = {};
-        
+        // let tmpMarketChangeId = Math.floor(Math.random()*10)
+
+        let min = info.basePrice
+        let max = info.basePrice*2
+        let priceSymbol = Math.floor(Math.random()*10)%2 == 0? -1: 1
+        cc.log('pricesymbol:' + priceSymbol)
+        let changePrice = (Math.floor(Math.random() * (max - min + 1) ) + min)*priceSymbol
+        if(changePrice<10){
+            changePrice = 20;
+        }
+        cc.log('changePrice:' + changePrice)
+        let rtInfo = {
+            id: info.id,
+            name: info.name,
+            price: info.price + changePrice,
+            basePrice: info.basePrice
+        };
+        cc.log('--- 变价前Goodsinfo:'+ JSON.stringify(GameData.GOODS))
+        GameData.GOODS.forEach(element => {
+            if(element.id == rtInfo.id){
+                element = rtInfo;
+            }
+        });
+        cc.log('--- 变价后Goodsinfo:'+ JSON.stringify(GameData.GOODS))   
+        return rtInfo;     
     }
     
     /**
@@ -232,6 +265,7 @@ export default class NewClass extends ViewBase {
     showGoodsOptionDialog(info, isBuyIn){
         cc.log('显示获取操作窗口:'+isBuyIn+';'+JSON.stringify(info))
         info = {
+            id: info.id,
             name: info.name,
             count: info.count? info.count: Math.floor(this.money/info.price),
             price: info.price,
@@ -256,6 +290,7 @@ export default class NewClass extends ViewBase {
             if(isBuyIn){
                 this.updateMoney(this.money-rtInfo); 
                 let buyInfo = {
+                    id: info.id,
                     name: info.name,
                     price: info.price,
                     count: rtInfo/info.price
