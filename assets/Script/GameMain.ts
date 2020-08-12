@@ -213,9 +213,10 @@ export default class NewClass extends ViewBase {
             item.getComponent(item.name).updateData(element);
             item.getComponent(item.name).setCallBack((gid)=>{
                 let info = null;
-                GameData.GOODS.forEach(element => {
-                    if(element.id == gid){
-                        info = element;
+                GameData.GOODS.forEach(ginfo => {
+                    if(ginfo.id == gid){
+                        info = ginfo;
+                        info.count = element.count;
                     }
                 });
                 cc.log('iii:'+JSON.stringify(info))
@@ -237,22 +238,36 @@ export default class NewClass extends ViewBase {
         let priceSymbol = Math.floor(Math.random()*10)%2 == 0? -1: 1
         cc.log('pricesymbol:' + priceSymbol)
         let changePrice = (Math.floor(Math.random() * (max - min + 1) ) + min)*priceSymbol
-        if(changePrice<10){
-            changePrice = 20;
-        }
         cc.log('changePrice:' + changePrice)
+        let tmpPrice = info.price +changePrice;
+        if(tmpPrice<10){
+            tmpPrice = 20;
+        }
         let rtInfo = {
             id: info.id,
             name: info.name,
-            price: info.price + changePrice,
+            price: tmpPrice,
             basePrice: info.basePrice
         };
         cc.log('--- 变价前Goodsinfo:'+ JSON.stringify(GameData.GOODS))
-        GameData.GOODS.forEach(element => {
-            if(element.id == rtInfo.id){
-                element = rtInfo;
+        for( let i = 0; i<GameData.GOODS.length; i++){
+            let oneInfo = GameData.GOODS[i]
+            if(oneInfo.id == rtInfo.id){
+                cc.log('equialllll')
+                cc.log(JSON.stringify(oneInfo))
+                GameData.GOODS[i] = rtInfo;
+                cc.log(JSON.stringify(oneInfo))
             }
-        });
+        }
+        // GameData.GOODS.forEach(element => {
+        //     cc.log('eid+rid: '+element.id+'; '+rtInfo.id)
+        //     cc.log(JSON.stringify(element))
+        //     if(element.id == rtInfo.id){
+        //         cc.log('equialllll')
+        //         element = rtInfo;
+        //         cc.log(JSON.stringify(element))
+        //     }
+        // });
         cc.log('--- 变价后Goodsinfo:'+ JSON.stringify(GameData.GOODS))   
         return rtInfo;     
     }
@@ -302,9 +317,13 @@ export default class NewClass extends ViewBase {
                 let removeIndex = -1;
                 let array = this.Warehouse_info;
                 for(let i = 0; i<array.length; i++){
-                    if(array[i].name == rtInfo.name){
-                        let soldCount = rtInfo.price/array[i].price
+                    cc.log("sdlkfjsl")
+                    if(array[i].id == rtInfo.id){
+                        cc.log('e2r.2lsdkf')
+                        let soldCount = rtInfo.price/info.price
+                        cc.log('kkkkkkwrewrer:'+soldCount+'; '+array[i].count);
                         if(array[i].count == soldCount){
+                            cc.log('kkkkkk')
                             removeIndex = i;
                         }else{
                             array[i].count -= soldCount;

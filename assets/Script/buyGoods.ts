@@ -24,6 +24,7 @@ export default class buyGoods extends ViewBase {
     isBuyIn: true;  //是否买入
     mostCount:0;    //最多买入||最多卖出
     price:0;    //单价
+    id: 0;
 
     // LIFE-CYCLE CALLBACKS:
 
@@ -34,7 +35,8 @@ export default class buyGoods extends ViewBase {
     }
 
     updateData(info){
-        cc.log('info.buyin:'+info.isBuyIn)
+        cc.log('info.buyin:'+JSON.stringify(info))
+        this.id = info.id;
         this.isBuyIn = info.isBuyIn;
         this.price = info.price
         this.lblName.string = info.name;
@@ -71,9 +73,8 @@ export default class buyGoods extends ViewBase {
             if(this.isBuyIn){
                 this.callback(buyCount*this.price);
             }else{
-                cc.log('准备处理卖出2')      
                 this.callback({
-                    name: this.lblName.string,
+                    id: this.id
                     price: parseInt(this.buyCount.string)*this.price
                 }) 
             }
